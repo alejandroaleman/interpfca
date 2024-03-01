@@ -7,8 +7,9 @@
 <!-- badges: end -->
 
 interpfca fue creada para englobar las funciones utilizadas durante la
-realización de la tesina: “Comparación de Métodos de Interpolación
-Espacial en Agricultura de Precisión”
+realización de la tesina:  
+“Comparación de Métodos de Interpolación Espacial en Agricultura de
+Precisión”
 
 ## Instalacion
 
