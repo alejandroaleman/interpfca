@@ -12,7 +12,9 @@ put_gpkg_local(data, name, from_df, bound_df, temp_path, datatype)
 \item{name}{Espera un string con el nombre de la capa a guardar}
 
 \item{from_df}{espera un dataframe con los datos de los archivos originales donde fué tomado
-Se recomienda usar el dataframe de la lista obtenida con get_raw_shp}
+Se recomienda usar el dataframe de la lista obtenida con get_raw.}
+
+\item{bound_df}{description}
 
 \item{temp_path}{Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos}
 
@@ -25,11 +27,11 @@ Retorna un sf object pasado como parametro solo para poder usar el pipe, no tien
 Funcion que carga el geopackage con cada dato en una capa y lo guarda localmente
 }
 \details{
-Primero obtiene el directorio donde guardar los datos limpios, si no existe lo crea
-Luego obtiene el indice, si no existe lo crea
-Luego agrega el gpkg como una capa del tipo de dato correspondiente, si no existe el archivo lo crea
-Por ultimo actualiza, elimina los repetidos y guarda el indice localmente
+Primero obtiene el directorio donde guardar los datos limpios, si no existe lo crea.
+Luego obtiene el indice, si no existe lo crea.
+Luego agrega el gpkg como una capa del tipo de dato correspondiente, si no existe el archivo lo crea.
+Por ultimo actualiza, elimina los repetidos y guarda el indice localmente.
 }
 \examples{
-put_gpkg_local(data, "SYM_field_01", from, "F:/Facultad/Tesina/Data processor/Temp", "mapas_rendimiento.gpkg")
+put_gpkg_local(data=raw_gpkg$data, name="ELV_field_01", from=raw_gpkg$from, bound_df=boundary, temp_path="Data", datatype="Elevacion.gpkg")
 }

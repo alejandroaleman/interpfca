@@ -20,9 +20,9 @@ Retorna un dataframe con el nombre del archivo, id de origen y la superficie
 Funcion utilizada para obtener los datos del perimetro del lote cargado en el drive como gpkg
 }
 \details{
-Primero obtiene los dribbles del archivo del perimetro,
-Luego lo descarga y importa el archivo a un sf object
-Por ultimo arma un dataframe con el nombre del perimetro, id en el drive y la superficie
+Primero obtiene los dribbles del archivo del perimetro.
+Luego lo descarga y importa el archivo a un sf object.
+Por ultimo arma un dataframe con el nombre del perimetro, id en el drive y la superficie.
 }
 \examples{
 get_boundary_data(file, raw_data_path, temp_dir)

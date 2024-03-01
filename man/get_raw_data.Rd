@@ -18,7 +18,7 @@ Retorna un dribble con la ruta local de los datos crudos
 Funcion utilizada para obtener los datos crudos desde el drive
 }
 \details{
-Obtiene el dribble del archivo de origen y lo descarga
+Obtiene el dribble del archivo de origen y lo descarga.
 }
 \examples{
 datos <- get_raw_data(raw_data_id,temp_dir)

@@ -24,9 +24,9 @@ Retorna un dataframe que cada fila contiene un archivo de origen
 Funcion que crea un dataframe con los archivos de los datos de utilizados para crear el dataframe
 }
 \details{
-Primero obtiene el dribble del archivo en el drive
-Luego agrega una linea al dataframe con el nombre, id y ubicacion del archivo de origen
-Se debe utilizar de manera recursiva
+Primero obtiene el dribble del archivo en el drive.
+Luego agrega una linea al dataframe con el nombre, id y ubicacion del archivo de origen.
+Se debe utilizar de manera recursiva.
 }
 \examples{
 from <- add_from_data(raw_data_id, raw_data_path)

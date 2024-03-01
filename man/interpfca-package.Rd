@@ -4,9 +4,9 @@
 \name{interpfca-package}
 \alias{interpfca}
 \alias{interpfca-package}
-\title{interpfca: Procesado, caracterización e interpolacion de datos}
+\title{interpfca: Herramientas para el procesado, caracterización y modelado de interpolación de datos}
 \description{
-aquete de funciones creadas para realizar el procesado, caracterización e interpolacion de los datos utilizados en la tesina.
+Paquete de funciones creadas para realizar el procesado, caracterización y modelado de interpolación de datos utilizados en la tesina.
 }
 \author{
 \strong{Maintainer}: Alejandro Alemán \email{janoaleman@gmail.com}

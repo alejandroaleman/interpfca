@@ -7,9 +7,9 @@
 #' @param raw_data_path Espera un string con el id del drive de la ubicacion del archivo de origen
 #' @param from Espera un dataframe con los archivos de origen agregados antes, si es el primero lo crea vacio por default
 #' @return Retorna un dataframe que cada fila contiene un archivo de origen
-#' @details Primero obtiene el dribble del archivo en el drive
-#' Luego agrega una linea al dataframe con el nombre, id y ubicacion del archivo de origen
-#' Se debe utilizar de manera recursiva
+#' @details Primero obtiene el dribble del archivo en el drive. 
+#' Luego agrega una linea al dataframe con el nombre, id y ubicacion del archivo de origen. 
+#' Se debe utilizar de manera recursiva.
 #' @examples from <- add_from_data(raw_data_id, raw_data_path)
 #' from <- add_from_data(raw_data_id_2, raw_data_path_2, from)
 add_from_data <- function(raw_data_id,
@@ -35,7 +35,7 @@ add_from_data <- function(raw_data_id,
 #' @param raw_data_id Espera un string con el id del archivo de origen
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @return Retorna un dribble con la ruta local de los datos crudos
-#' @details Obtiene el dribble del archivo de origen y lo descarga
+#' @details Obtiene el dribble del archivo de origen y lo descarga.
 #' @examples datos <- get_raw_data(raw_data_id,temp_dir)
 get_raw_data <- function(raw_data_id, 
                          temp_path){
@@ -66,9 +66,9 @@ get_raw_data <- function(raw_data_id,
 #' @param raw_data_path Espera un string con el id de la ubicacion del archivo de origen
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @return Retorna una lista de dos entradas con los datos y los archivos de origen
-#' @details Primero obtiene los dribbles del archivo de origen, 
-#' Luego lo descarga y arma el dataframe con la info de origen
-#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen
+#' @details Primero obtiene los dribbles del archivo de origen. 
+#' Luego lo descarga y arma el dataframe con la info de origen. 
+#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen.
 #' @examples datos <- get_raw_shp(file, raw_data_path, temp_dir)
 #' @export
 get_raw_shp <- function(file, 
@@ -109,9 +109,9 @@ get_raw_shp <- function(file,
 #' @param raw_data_path Espera un string con el id de la ubicacion del archivo de origen
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @return Retorna una lista de dos entradas con los datos y los archivos de origen
-#' @details Primero obtiene los dribbles del archivo de origen, 
-#' Luego lo descarga y arma el dataframe con la info de origen
-#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen
+#' @details Primero obtiene los dribbles del archivo de origen. 
+#' Luego lo descarga y arma el dataframe con la info de origen. 
+#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen.
 #' @examples datos <- get_raw_shp(file, raw_data_path, temp_dir)
 #' @export
 get_raw_csv <- function(file, 
@@ -140,9 +140,9 @@ get_raw_csv <- function(file,
 #' @param raw_data_path Espera un string con el id de la ubicacion del archivo de origen
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @return Retorna una lista de dos entradas con los datos y los archivos de origen
-#' @details Primero obtiene los dribbles del archivo de origen, 
-#' Luego lo descarga y arma el dframe con la info de origen
-#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen
+#' @details Primero obtiene los dribbles del archivo de origen. 
+#' Luego lo descarga y arma el dataframe con la info de origen. 
+#' Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen.
 #' @examples datos <- get_raw_shp(file, raw_data_path, temp_dir)
 #' @export
 get_raw_gpkg <- function(file, 
@@ -171,9 +171,9 @@ get_raw_gpkg <- function(file,
 #' @param raw_data_path Espera un string con el id de la ubicacion del archivo de origen
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @return Retorna un dataframe con el nombre del archivo, id de origen y la superficie
-#' @details Primero obtiene los dribbles del archivo del perimetro, 
-#' Luego lo descarga y importa el archivo a un sf object 
-#' Por ultimo arma un dataframe con el nombre del perimetro, id en el drive y la superficie
+#' @details Primero obtiene los dribbles del archivo del perimetro. 
+#' Luego lo descarga y importa el archivo a un sf object. 
+#' Por ultimo arma un dataframe con el nombre del perimetro, id en el drive y la superficie.
 #' @examples get_boundary_data(file, raw_data_path, temp_dir)
 #' @export
 get_boundary_data <- function(file, 
@@ -201,15 +201,16 @@ get_boundary_data <- function(file,
 #' @param data espera un sf object con el dato a guardar
 #' @param name Espera un string con el nombre de la capa a guardar
 #' @param from_df espera un dataframe con los datos de los archivos originales donde fué tomado
-#' Se recomienda usar el dataframe de la lista obtenida con get_raw_shp
+#' Se recomienda usar el dataframe de la lista obtenida con get_raw.
+#' @param bound_df description
 #' @param temp_path Espera un String con la ruta de la carpeta temporal donde se descargan y crean los distintos archivos
 #' @param data_type espera un String con el tipo de dato a guardar para guardarlo en su correspondiente carpeta con ese nombre
 #' @return Retorna un sf object pasado como parametro solo para poder usar el pipe, no tiene uso aun
-#' @details Primero obtiene el directorio donde guardar los datos limpios, si no existe lo crea
-#' Luego obtiene el indice, si no existe lo crea
-#' Luego agrega el gpkg como una capa del tipo de dato correspondiente, si no existe el archivo lo crea
-#' Por ultimo actualiza, elimina los repetidos y guarda el indice localmente
-#' @examples put_gpkg_local(data, "SYM_field_01", from, "F:/Facultad/Tesina/Data processor/Temp", "mapas_rendimiento.gpkg")
+#' @details Primero obtiene el directorio donde guardar los datos limpios, si no existe lo crea. 
+#' Luego obtiene el indice, si no existe lo crea. 
+#' Luego agrega el gpkg como una capa del tipo de dato correspondiente, si no existe el archivo lo crea. 
+#' Por ultimo actualiza, elimina los repetidos y guarda el indice localmente.
+#' @examples put_gpkg_local(data=raw_gpkg$data, name="ELV_field_01", from=raw_gpkg$from, bound_df=boundary, temp_path="Data", datatype="Elevacion.gpkg")
 #' @export
 put_gpkg_local <- function(data, 
                            name, 

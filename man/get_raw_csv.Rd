@@ -20,9 +20,9 @@ Retorna una lista de dos entradas con los datos y los archivos de origen
 Funcion utilizada para obtener los datos crudos en formato csv desde el drive
 }
 \details{
-Primero obtiene los dribbles del archivo de origen,
-Luego lo descarga y arma el dataframe con la info de origen
-Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen
+Primero obtiene los dribbles del archivo de origen.
+Luego lo descarga y arma el dataframe con la info de origen.
+Por ultimo importa el archivo a un sf object y arma la lista con el sf object y el df de origen.
 }
 \examples{
 datos <- get_raw_shp(file, raw_data_path, temp_dir)

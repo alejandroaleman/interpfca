@@ -1,9 +1,9 @@
 Package: interpfca
-Title: Procesado, caracterización e interpolacion de datos
-Version: 0.0.0.9000
+Title: Herramientas para el procesado, caracterización y modelado de interpolación de datos
+Version: 1.0
 Authors@R: 
     person("Alejandro", "Alemán", , "janoaleman@gmail.com", role = c("aut", "cre"))
-Description: aquete de funciones creadas para realizar el procesado, caracterización e interpolacion de los datos utilizados en la tesina.
+Description: Paquete de funciones creadas para realizar el procesado, caracterización y modelado de interpolación de datos utilizados en la tesina.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -12,7 +12,13 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
+    automap,
+    doParallel,
     dplyr,
+    ggplot2,
     googledrive,
+    gstat,
+    rsample,
     sf,
-    tibble
+    tibble,
+    tidyr
