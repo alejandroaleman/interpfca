@@ -789,7 +789,6 @@ get_ok_atmp <- function(path,
         m_fit_df <- as.data.frame(m_fit)
         #Obtenemos el modelo
         model <- gstat(formula = fm, data = train_data, model= m_fit,maxdist = dist_nn*10)
-        saveRDS
         #Removemos variables que no se usan más
         rm(list = c("train_data"))
         ## Realizar predicciones en el subconjunto de prueba
@@ -818,7 +817,6 @@ get_ok_atmp <- function(path,
         #Sacamos de la memoria las variables que no se usan
         rm(list = c("model", "test_data"))
       }
-      ##bind----
       #Finaliza el contador de tiempo
       time_end<-Sys.time()
       xv <-tibble(layer=layer,formula=fm_str,data=list(ret),fit_param=list(fit),time=difftime(time_end, time_start, units = "secs")) |>
@@ -1060,4 +1058,258 @@ get_vgm_param <- function(file_path,
   }
   registerDoSEQ()
   return(ret)
+}
+
+#' @title Obtener modelo de predicción
+#' @description Esta función calcula y devuelve el modelo de predicción del metodo y los parametros y layer especificado
+#' @param path Ruta del directorio donde se encuentra el archivo GPKG.
+#' @param file_name Nombre del archivo GPKG con los datos.
+#' @param layer Nombre de la capa a obtener el modelo
+#' @param method Metodo a aplicar para realizar la predicción.
+#' Los valores posibles son "idw", "ok" y "rf"
+#' @param idp Valor de potencia aplicar es idw
+#' @param formula Formula de tendencia para aplicar ok
+#' @param dist_nn Distancia promedio al vecino más cercano para aplicar idw y ok
+#' @param knn Numero de vecinos a utilizar para aplicar rf
+#' @param outlier valor lógico que define si sacar los outliers.  
+#' Por defecto es TRUE y no saca los outliers
+#' @param iqr_p Si outlier es FALSE especifica que outliers filtrar. 
+#' Por defecto es 3
+#' @param n_col Número de columna a resumir en caso de tener múltiples columnas (datos apareados). 
+#' Por defecto, es 1.
+#' @return Modelo de predicción según método especificado
+#' @details 
+#' @examples 
+#' @export
+get_prediction_model<- function(path,
+                                file_name,
+                                layer=NULL,
+                                method=NULL,
+                                idp=NULL,
+                                formula=NULL,
+                                dist_nn=NULL,
+                                knn=NULL,
+                                outlier=T,
+                                iqr_p=3,
+                                n_col=1){
+  require(sf)
+  require(dplyr)
+  require(tidyr)
+  require(rsample)
+  #Chequea que las variables introducidas sean validas
+  method<-tolower(method)
+  ret<-NULL
+  if(is.null(layer)){
+    print("Debe especificar un layer")
+  }else if (is.null(method)||(method!="idw"&&method!="ok"&&method!="rf")){
+    print("Debe especificar un metodo")
+  }else if(method=="idw"&&(is.null(idp)||!is.numeric(idp))){
+    print("Debe especificar un valor de potencia para aplicar idw")
+  }else if((method=="ok"||method=="idw")&&(is.null(dist_nn)||!is.numeric(dist_nn))){
+    print("Debe especificar una distancia al nn para aplicar idw o ok")
+  }else if(method=="ok"&&is.null(formula)){
+    print("Debe especificar una formula de tendencia para aplicar ok")
+  }else if(method=="rf"&&(is.null(knn)||!is.numeric(knn))){
+    print("Debe especificar el numero de vecinos a utilizar para aplicar rf")
+  }else{
+    file_path<-file.path(path,file_name)
+    data <- st_read(file_path,layer = layer)
+    data<-data %>% 
+      rename(data_col=colnames(data)[n_col]) %>% 
+      mutate(x = st_coordinates(data)[, "X"], 
+             y = st_coordinates(data)[, "Y"])
+    
+    # Calcular el primer cuartil (Q1) y el tercer cuartil (Q3)
+    Q1 <- quantile(data$data_col, 0.25)
+    Q3 <- quantile(data$data_col, 0.75)
+    # Calcular el rango intercuartílico (IQR)
+    IQR <- Q3-Q1
+    # Calcular los límites inferior y superior para identificar los outliers
+    limite_inferior <- Q1 - iqr_p * IQR
+    limite_superior <- Q3 + iqr_p * IQR
+    # Crear un campo logico que identifique si el dato es un outlier
+    data <- data %>%
+      mutate(outlier = if_else(
+        data_col<limite_inferior|data_col>limite_superior
+        ,T
+        ,F))
+    rm(list=c("Q1","Q3","IQR","limite_inferior","limite_superior"))
+    #Eliminando los Outliers
+    if (outlier==F) {
+      data<-data |> filter(outlier==F)
+    }
+    if(method=="idw"){
+      require(gstat)
+      ret <- gstat(id = layer, formula = data_col ~ 1, data = data,model = NULL, set = list(idp = idp),maxdist = dist_nn*10)
+    }else if(method=="ok"){
+      require(gstat)
+      require(automap)
+      fm <- formula(formula)
+      m_fit <- automap::autofitVariogram(fm,data)$var_model
+      ret <- gstat(formula = fm, data = data, model= m_fit,maxdist = dist_nn*10)
+    }else if(method=="rf"){
+      require(ranger)
+      ntrees <- 250 #Numero de arboles para RFsi Segun sekulic pag 8 y 9
+      #Nombre de la variable
+      vname <- "data_col"
+      ## Feature names
+      ft_names <- c(
+        paste0("vals_nn", 1:(knn-1)),
+        paste0("dist_nn", 1:(knn-1))
+      )  
+      ##Calculamos las distancias entre los vecinos
+      nn_data <- nngeo::st_nn(data, data, k = knn, returnDist = T, sparse = T)
+      
+      ##Obtenemos los valores de los vecinos
+      nn_data$vals <- lapply(nn_data$nn, function(x) data[[vname]][x])
+      
+      ##Combinamos los datos y asignamos los nombres de las columnas de los vecinos
+      nn_data <- cbind(
+        do.call(rbind, nn_data$vals)[, -1],
+        do.call(rbind, nn_data$dist)[, -1]
+      )
+      colnames(nn_data) <- ft_names
+      temp_data <- cbind(data, nn_data)
+      #Formula del modelo
+      fm <- paste0(vname, " ~ ", paste(ft_names, collapse = "+"))
+      # Entrenando el modelo
+      ret <- temp_data %>%  
+        st_drop_geometry() %>% 
+        na.omit() %>% 
+        ranger::ranger(fm, data = ., num.trees = ntrees, importance = "impurity")
+    }
+  }
+  return(ret)
+}
+
+
+#' @title Script for training RF spatial model
+#' @description RFsi is a function used to obtain models by the method Random Forest and to predict over a grid. Implemented using the ranger package (Wright & Ziegler, 2017).
+#' @author Carlos Agustín, Alesso
+#' @usage rfsi(obs, model = NULL, tgt = NULL, vname,  knn = 50, angle = T,  dist = T)
+#' @param obs SF with observed points
+#' @param model Trained RFsi model
+#' @param tgt SF with prediction grid or locations
+#' @param vname Data variable name
+#' @param knn Number of neighbors
+#' @param angle Include angles
+#' @param dist Include distances
+#' @return Object of class ranger or SF with prediction grid
+#' @details If the model and grid are not specified, then the function obtains a model of class ranger and returns it.
+#' On the other hand, if the model and the grid with the locations are specified, it returns a grid of class sf with the predictions.
+#' @examples mod <- rfsi(obs, model = NULL, tgt = NULL, vname, knn = 50, angle = F, dist = T)
+#' pred <- rfsi(obs, model = mod, tgt = grid, vname, knn = 50, angle = F, dist = T)
+#' @export
+rfsi <- function(
+    obs,            # SF with observed points
+    model = NULL,   # Trained RFsi model
+    tgt = NULL,     # SF with prediction grid or locations
+    vname,          # variable name
+    knn = 50,       # Number of neighbors
+    angle = T,      # Include angles
+    dist = T        # Include distances
+) {
+  
+  ## Packages
+  require(sf)
+  require(nngeo)
+  require(ranger)
+  
+  # Set the number of neighbors
+  k <- knn
+  
+  # Feature names
+  ft_names <- c(
+    paste0("vals_nn", 1:(k-1)),
+    paste0("dist_nn", 1:(k-1))
+    # paste0("azim_nn", 1:(k-1))
+  )
+  message("Creating features based on ", k, " nearest neighbors", '\n\r')
+  
+  
+  if (is.null(model) & is.null(tgt)) {
+    
+    message('Training model...')
+    
+    ## Calculate nn distances
+    message('Computing distances...')
+    nn_train <- nngeo::st_nn(obs, obs, k = k, returnDist = T, sparse = T)
+    message('done', '\n\r')
+    
+    ## Retrieve values from the nn
+    message('Getting values, ')
+    nn_train$vals <- lapply(nn_train$nn, function(x) obs[[vname]][x])
+    message('done', '\n\r')
+    
+    # ## Calculate angles between observations and k nn
+    if (angle) {
+      message('Computing angles...')
+      nn_train$azim <- nn_train$vals
+      for (i in 1:length(nn_train$vals)) {
+        nn_train$azim[i] <- lapply(nn_train$nn[i], function(j) nngeo::st_azimuth(obs[i,1], obs[j,1]))
+      }
+      message('done', '\n\r')
+    }
+    
+    ## Combine data and asign column names nn for values
+    nn_train <- cbind(
+      do.call(rbind, nn_train$vals)[, -1],
+      # do.call(rbind, nn_train$azim)[, -1],
+      do.call(rbind, nn_train$dist)[, -1]
+    )
+    colnames(nn_train) <- ft_names
+    obs <- cbind(obs, nn_train)
+    message('Training dataset ready.', '\n\r')
+    
+    ### Model
+    message("Training model...")
+    fm <- paste0(vname, " ~ ", paste(ft_names, collapse = "+"))
+    rf <- st_drop_geometry(obs) %>%
+      drop_na(all_of(vname)) %>%
+      ranger::ranger(fm, data = ., num.trees = 150,
+                     importance = "impurity")
+    message("done.", '\n\r')
+    
+    return(rf)
+    
+  } else {
+    
+    ## Prediction
+    message("Creating prediction grid...")
+    
+    ### Calculate nn distances
+    nn_pred <- nngeo::st_nn(tgt, obs, k = k-1, returnDist = T, sparse = T)
+    
+    ### Retrieve values from the nn
+    nn_pred$vals <- lapply(nn_pred$nn, function(x) obs[[vname]][x])
+    
+    if (angle) {
+      ### Calculate angles between observations and k nn
+      nn_pred$azim <- nn_pred$vals
+      for (i in 1:length(nn_pred$vals)) {
+        nn_pred$azim[i] <- lapply(nn_pred$nn[i], function(j) nngeo::st_azimuth(tgt[i, 1], obs[j, 1]))
+      }
+    }
+    
+    ### Combine data and assign column names nn for values
+    nn_pred <- cbind(
+      do.call(rbind, nn_pred$vals),
+      # do.call(rbind, nn_pred$azim),
+      do.call(rbind, nn_pred$dist)
+    )
+    nn_pred <- as.data.frame(nn_pred)
+    names(nn_pred) <- ft_names
+    message("done.", '\n\r')
+    
+    
+    ## Predict from model
+    message("Getting predictions...")
+    preds <- predict(model, nn_pred)
+    tgt[[vname]] <- preds$predictions
+    message("done.", '\n\r')
+    
+    return(tgt)
+    
+  }
+  
 }
